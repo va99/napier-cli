@@ -1,0 +1,15 @@
+{
+    "name": "napier-cli",
+    "description": "Local LLM agent with MCP capabilities",
+    "version": "0.1.0",
+    "default_model": "gemma:2b",
+    "mcp_host": {
+        "host": "0.0.0.0",
+        "port": 8000
+    },
+    "ollama": {
+        "url": "http://localhost:11434",
+        "api_version": "v1"
+    },
+    "tools": []
+}
