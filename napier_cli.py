@@ -79,39 +79,48 @@ def is_ollama_installed():
 
 # Function to install Ollama automatically
 def install_ollama():
-    console.print("[yellow]Ollama is not installed. Would you like to install it? (Y/N): [/yellow]", end="")
-    user_input = input().strip().lower()
+    # Detect platform
+    system_platform = platform.system()
     
-    if user_input == 'y':
-        with Progress(
-            SpinnerColumn(),
-            TextColumn("[bold green]Installing Ollama...[/bold green]"),
-            console=console
-        ) as progress:
-            task = progress.add_task("Installing", total=None)
+    if system_platform == "Darwin":  # macOS
+        console.print("[yellow]macOS detected. Installing Ollama...[/yellow]")
+        
+        # Try installing with Homebrew if available
+        try:
+            subprocess.run(["brew", "install", "ollama"], check=True)
+            console.print("[bold green]Ollama installed successfully using Homebrew.[/bold green]")
+            return True
+        except subprocess.CalledProcessError:
+            console.print("[bold red]Error: Ollama installation failed via Homebrew. Trying direct installation.[/bold red]")
+        
+        # If Homebrew installation fails, try downloading the macOS package
+        try:
+            console.print("[yellow]Downloading Ollama for macOS...[/yellow]")
+            # Adjust this URL or method as per Ollama's macOS installation guide if available
+            download_url = "https://ollama.com/mac/download"
+            subprocess.run(["curl", "-fsSL", download_url, "-o", "ollama.pkg"], check=True)
+            subprocess.run(["sudo", "installer", "-pkg", "ollama.pkg", "-target", "/"], check=True)
+            console.print("[bold green]Ollama installed successfully for macOS.[/bold green]")
+            return True
+        except subprocess.CalledProcessError:
+            console.print("[bold red]Error: Ollama installation failed. Please check system permissions.[/bold red]")
+            return False
             
-            # Install command based on platform
-            if platform.system() == "Darwin" or platform.system() == "Linux":
-                install_command = "curl -fsSL https://ollama.com/install.sh | sh"
-            elif platform.system() == "Windows":
-                install_command = "powershell -Command \"irm https://ollama.com/install.ps1 | iex\""
-            else:
-                console.print("[bold red]Unsupported platform for automatic installation.[/bold red]")
-                return False
-                
-            try:
-                subprocess.run(install_command, shell=True, check=True)
-                progress.update(task, completed=True)
-                console.print("[bold green]Ollama installation completed successfully.[/bold green]")
-                return True
-            except subprocess.CalledProcessError:
-                progress.update(task, completed=True)
-                console.print("[bold red]Error: Ollama installation failed. Please check system permissions.[/bold red]")
-                return False
+    elif system_platform == "Linux":  # Linux
+        console.print("[yellow]Linux detected. Installing Ollama...[/yellow]")
+        
+        # Try the original Linux installation method
+        try:
+            subprocess.run(["curl", "-fsSL", "https://ollama.com/install.sh", "|", "sh"], check=True)
+            console.print("[bold green]Ollama installed successfully for Linux.[/bold green]")
+            return True
+        except subprocess.CalledProcessError:
+            console.print("[bold red]Error: Ollama installation failed on Linux.[/bold red]")
+            return False
     else:
-        console.print("[bold red]Ollama installation aborted. You won't be able to use the local AI assistant without it.[/bold red]")
+        console.print("[bold red]Unsupported platform for automatic installation.[/bold red]")
         return False
-
+        
 # Function to start Ollama after installation
 def start_ollama():
     global ollama_process
